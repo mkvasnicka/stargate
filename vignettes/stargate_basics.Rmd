@@ -1,0 +1,60 @@
+---
+title: "stargate basics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{stargate basics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(stargate)
+```
+
+
+```{r}
+n <- 1e3
+df <- tibble(
+    x1 = rnorm(n),
+    x2 = rnorm(n),
+    x3 = rnorm(n),
+    e  = rnorm(n),
+    y  = x1 - 2 * x2 + 3 * x3 + e
+)
+
+m1 <- lm(y ~ x1 + x2, df)
+m2 <- lm(y ~ x1 + x2 + x3, df)
+m3 <- lm(y ~ x1 + x2 * x3, df)
+```
+
+
+```{r}
+sm1 <- sg_model(m1)
+sm2 <- sg_model(m2)
+sm3 <- sg_model(m3)
+```
+
+
+```{r}
+st <- sg_table(m1, sm2)
+st <- sg_table(st, m3)
+st
+```
+
+```{r}
+st <- sg_format_coefs(st)
+st
+```
+
+```{r}
+sft <- sg_format(st, nsmall = 3)
+sft
+```
+
