@@ -91,10 +91,38 @@ sg_table <- function(...) {
 }
 
 
+#' @export
+sg_standard_stats <- function(type) {
+    list("r.squared" = "R2",
+      "adj.r.squared" = "Adj. R2",
+      "sigma" = NULL,
+      "statistic" = NULL,
+      "p.value" = NULL,
+      "df" = NULL,
+      "logLik" = "log Lik.",
+      "AIC" = NULL,
+      "BIC" = NULL,
+      "deviance" = NULL,
+      "df.residual" = NULL,
+      "nobs" = "No. of Observations")
+}
+
+
 # přejmenuje jméno koeficientu, statistiky nebo modelu
 #' @export
-sg_rename <- function(x, coef, stat, name) {
-
+sg_rename <- function(x, coefs = NULL, stats = NULL, name = NULL) {
+    if (!(inherits(x, "sg_model") || inherits(x, "sg_table")))
+        stop("x must be either sg_model or sg_table")
+    if (!is.null(coefs))
+        stop("coefs not implemnted")
+    if (!is.null(stats)) {
+        keep_stats <- !purrr::map_lgl(stats, is.null)
+        stats <- stats[keep_stats]
+        x$stats <- dplyr::filter(x$stats, (stat %in% names(stats)))
+        for (s in seq_along(stats))
+            x$stats$stat[x$stat$stat == names(stats)[s]] <- stats[[s]]
+    }
+    x
 }
 
 

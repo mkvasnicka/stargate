@@ -51,7 +51,21 @@ st
 
 
 ```{r}
+st <- sg_rename(st, stats = sg_standard_stats())
+st
+```
+
+
+```{r}
 sft <- sg_format(st, nsmall = 3)
 sft
+```
+
+
+```{r}
+library(kableExtra)
+kbl(sft) |> 
+    kable_classic() |> 
+    row_spec(5, hline_after = TRUE)
 ```
 
