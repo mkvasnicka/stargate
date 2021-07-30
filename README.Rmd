@@ -22,11 +22,13 @@ The goal of stargate is to simplify production of formatted tables that hold reg
 
 ## Installation
 
+<!--
 You can install the released version of stargate from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
 install.packages("stargate")
 ```
+-->
 
 And the development version from [GitHub](https://github.com/) with:
 
