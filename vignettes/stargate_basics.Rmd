@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
+library(tibble)
 library(stargate)
 ```
 
@@ -48,10 +49,6 @@ st <- sg_table(st, m3)
 st
 ```
 
-```{r}
-st <- sg_format_coefs(st)
-st
-```
 
 ```{r}
 sft <- sg_format(st, nsmall = 3)
