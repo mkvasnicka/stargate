@@ -25,6 +25,7 @@
 #' @param ... Other parameters sent to the \code{sg_model} methods.
 #' @return The sg model representation of the estimate.
 #' @examples
+#' library(tibble)
 #' n <- 1e3
 #' df <- tibble(
 #'     x1 = rnorm(n),
@@ -40,7 +41,7 @@ sg_model <- function(m, name, ...)
     UseMethod("sg_model")
 
 #' @export
-sg_model.default <- function(m, name = "") {
+sg_model.default <- function(m, name = "", ...) {
     if (inherits(m, "stargate"))
         return(m)
     coefs <- broom::tidy(m)
@@ -126,7 +127,7 @@ sg_standard_stats <- function(type) {
 #'
 #' The change of model parameters is not implemented yet.
 #' @examples
-#' st <- sg_rename(st, stats = sg_standard_stats())
+#' # st <- sg_rename(st, stats = sg_standard_stats())
 #' @export
 sg_rename <- function(x, coefs = NULL, stats = NULL, name = NULL) {
     if (!(inherits(x, "sg_model") || inherits(x, "sg_table")))
@@ -200,7 +201,7 @@ sg_format <- function(tab, nsmall = 2, ...) {
             purrr::reduce(dplyr::full_join, by = names(tab)[2]) |>
             dplyr::mutate(across(-1,
                                  ~stringr::str_replace_na(., replacement = ""))) |>
-            setNames(c("oo", name))
+            stats::setNames(c("oo", name))
     }
     coefs <- tab |>
         sg_format_coefs(nsmall = nsmall, ...) |>

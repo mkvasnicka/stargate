@@ -34,8 +34,8 @@ m1 <- lm(y ~ x1 + x2, df)
 m2 <- lm(y ~ x1 + x2 + x3, df)
 m3 <- lm(y ~ x1 + x2 * x3, df)
 
-library(fixest)
-m4 <- feols(y ~ x1 + x2 + x3, df)
+# library(fixest)
+# m4 <- feols(y ~ x1 + x2 + x3, df)
 ```
 
 
@@ -43,13 +43,13 @@ m4 <- feols(y ~ x1 + x2 + x3, df)
 sm1 <- sg_model(m1)
 sm2 <- sg_model(m2)
 sm3 <- sg_model(m3)
-sm4 <- sg_model(m4)
+# sm4 <- sg_model(m4)
 ```
 
 
 ```{r}
 st <- sg_table(m1, sm2)
-st <- sg_table(st, m3, m4)
+st <- sg_table(st, m3) #, m4)
 st
 ```
 
