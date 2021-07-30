@@ -108,7 +108,25 @@ sg_standard_stats <- function(type) {
 }
 
 
-# přejmenuje jméno koeficientu, statistiky nebo modelu
+#' Renames estimated parameters and statisticts
+#'
+#' @param x A sg model or sg table.
+#' @param coefs The list of names to be changed.
+#' @param stats The list of statistics to be changed.
+#' @param name The list of model names to be changed.
+#' @return The sg model or sg table with changed names.
+#' @section Details:
+#'
+#' If you want to remove a parameter or a statistics, set it to NULL.
+#'
+#' @section Warnings:
+#'
+#' It cannot be run twice with the same table because it would rename statistics
+#' and then remove them.
+#'
+#' The change of model parameters is not implemented yet.
+#' @examples
+#' st <- sg_rename(st, stats = sg_standard_stats())
 #' @export
 sg_rename <- function(x, coefs = NULL, stats = NULL, name = NULL) {
     if (!(inherits(x, "sg_model") || inherits(x, "sg_table")))
