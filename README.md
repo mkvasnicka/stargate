@@ -110,28 +110,31 @@ sftab <- stab |>
     sg_format()
 ```
 
+Present:
+
+``` r
+sftab <- sftab |> 
+    sg_present()
+```
+
 Print the table:
 
 ``` r
 kbl(sftab, format = "pipe") |> 
-    kable_classic() |> 
-    row_spec(5, hline_after = TRUE)
+    kable_classic()
 #> Warning in kable_styling(kable_input, "none", htmltable_class = light_class, :
 #> Please specify format in kable. kableExtra can customize either HTML or LaTeX
 #> outputs. See https://haozhu233.github.io/kableExtra/ for details.
-#> Warning in row_spec(kable_classic(kbl(sftab, format = "pipe")), 5, hline_after
-#> = TRUE): Please specify format in kable. kableExtra can customize either HTML or
-#> LaTeX outputs. See https://haozhu233.github.io/kableExtra/ for details.
 ```
 
-| oo        | \(1\)              | \(2\)              | \(3\)              |
+|           | \(1\)              | \(2\)              | \(3\)              |
 |:----------|:-------------------|:-------------------|:-------------------|
-| x1        | 0.99\*\*\* (0.10)  | 1.00\*\*\* (0.03)  | 1.00\*\*\* (0.03)  |
-| x2        | -2.02\*\*\* (0.10) | -1.99\*\*\* (0.03) | -1.99\*\*\* (0.03) |
-| x3        |                    | 3.02\*\*\* (0.03)  | 3.02\*\*\* (0.03)  |
-| x2:x3     |                    |                    | 0.00 (0.03)        |
-| r.squared | 0.35               | 0.93               | 0.93               |
-| logLik    | -2573.77           | -1455.41           | -1455.41           |
+| x1        | 1.08\*\*\* (0.10)  | 0.98\*\*\* (0.03)  | 0.98\*\*\* (0.03)  |
+| x2        | -2.13\*\*\* (0.10) | -2.05\*\*\* (0.03) | -2.05\*\*\* (0.03) |
+| x3        |                    | 3.01\*\*\* (0.03)  | 3.01\*\*\* (0.03)  |
+| x2:x3     |                    |                    | 0.03 (0.03)        |
+| r.squared | 0.36               | 0.93               | 0.93               |
+| logLik    | -2549.63           | -1439.87           | -1439.55           |
 | nobs      | 1000               | 1000               | 1000               |
 
 Or do all that at once:
@@ -141,9 +144,9 @@ sg_table(sm1, m2, m3) |>
     sg_remove(coefs = "Interc", regex = TRUE) |> 
     sg_remove(stats = c("r.squared", "logLik", "nobs"), keep = TRUE) |> 
     sg_format() |> 
+    sg_present() |> 
     kbl(format = "pipe") |> 
-    kable_classic() |> 
-    row_spec(5, hline_after = TRUE)
+    kable_classic()
 #> Warning: Unknown or uninitialised column: `model_id`.
 
 #> Warning: Unknown or uninitialised column: `model_id`.
@@ -152,18 +155,14 @@ sg_table(sm1, m2, m3) |>
 #> Warning in kable_styling(kable_input, "none", htmltable_class = light_class, :
 #> Please specify format in kable. kableExtra can customize either HTML or LaTeX
 #> outputs. See https://haozhu233.github.io/kableExtra/ for details.
-#> Warning in
-#> row_spec(kable_classic(kbl(sg_format(sg_remove(sg_remove(sg_table(sm1, : Please
-#> specify format in kable. kableExtra can customize either HTML or LaTeX outputs.
-#> See https://haozhu233.github.io/kableExtra/ for details.
 ```
 
-| oo        | \(1\)              | \(2\)              | \(3\)              |
+|           | \(1\)              | \(2\)              | \(3\)              |
 |:----------|:-------------------|:-------------------|:-------------------|
-| x1        | 0.99\*\*\* (0.10)  | 1.00\*\*\* (0.03)  | 1.00\*\*\* (0.03)  |
-| x2        | -2.02\*\*\* (0.10) | -1.99\*\*\* (0.03) | -1.99\*\*\* (0.03) |
-| x3        |                    | 3.02\*\*\* (0.03)  | 3.02\*\*\* (0.03)  |
-| x2:x3     |                    |                    | 0.00 (0.03)        |
-| r.squared | 0.35               | 0.93               | 0.93               |
-| logLik    | -2573.77           | -1455.41           | -1455.41           |
+| x1        | 1.08\*\*\* (0.10)  | 0.98\*\*\* (0.03)  | 0.98\*\*\* (0.03)  |
+| x2        | -2.13\*\*\* (0.10) | -2.05\*\*\* (0.03) | -2.05\*\*\* (0.03) |
+| x3        |                    | 3.01\*\*\* (0.03)  | 3.01\*\*\* (0.03)  |
+| x2:x3     |                    |                    | 0.03 (0.03)        |
+| r.squared | 0.36               | 0.93               | 0.93               |
+| logLik    | -2549.63           | -1439.87           | -1439.55           |
 | nobs      | 1000               | 1000               | 1000               |

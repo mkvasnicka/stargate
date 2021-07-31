@@ -107,12 +107,19 @@ sftab <- stab |>
     sg_format()
 ```
 
+Present:
+
+```{r}
+sftab <- sftab |> 
+    sg_present()
+```
+
+
 Print the table:
 
 ```{r}
 kbl(sftab, format = "pipe") |> 
-    kable_classic() |> 
-    row_spec(5, hline_after = TRUE)
+    kable_classic()
 ```
 
 Or do all that at once:
@@ -122,8 +129,8 @@ sg_table(sm1, m2, m3) |>
     sg_remove(coefs = "Interc", regex = TRUE) |> 
     sg_remove(stats = c("r.squared", "logLik", "nobs"), keep = TRUE) |> 
     sg_format() |> 
+    sg_present() |> 
     kbl(format = "pipe") |> 
-    kable_classic() |> 
-    row_spec(5, hline_after = TRUE)
+    kable_classic()
 ```
 

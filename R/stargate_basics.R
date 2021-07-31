@@ -146,8 +146,19 @@ sg_table <- function(...) {
 
 # rename stuff ------------------------------------------------------------
 
-sg_rename <- function(x) {
+sg_rename <- function(x, coefs = NULL, stats = NULL) {
 
+}
+
+
+sg_rename_coefs <- function(x, coefs) {
+    if (!(inherits(x, "sg_model") || inherits(x, "sg_table") ||
+          inherits(x, "sg_formatted_table")))
+        stop("x must be a stargate object")
+    if (!((is.character(coefs) && length(coefs >= 1) && !is.null(names(coefs))) ||
+          (is.data.frame(coefs) && ncol == 2 && nrow >= 1)))
+        stop("coefs must be a non-empty named character vector or a non-empty",
+             " data.frame with two columns")
 }
 
 
@@ -342,7 +353,7 @@ sg_format <- function(tab, nsmall = 2, ...) {
                            stringr::str_c("(", seq_along(tab$name$name), ")"),
                            tab$name$name
     )
-    get_together <- function(tab, name) {
+    get_together <- function(tab, name, tabname) {
         tab |>
             dplyr::select(1, 2, ncol(tab)) |>
             dplyr::group_by(model_id) |>
@@ -350,18 +361,33 @@ sg_format <- function(tab, nsmall = 2, ...) {
             purrr::reduce(dplyr::full_join, by = names(tab)[2]) |>
             dplyr::mutate(across(-1,
                                  ~stringr::str_replace_na(., replacement = ""))) |>
-            stats::setNames(c("oo", name))
+            stats::setNames(c(tabname, name))
     }
     coefs <- tab |>
         sg_format_coefs(nsmall = nsmall, ...) |>
         purrr::pluck("coefs") |>
-        get_together(name)
+        get_together(name, tabname = "term")
     stats <- tab |>
         sg_format_stats(nsmall = nsmall, ...) |>
         purrr::pluck("stats") |>
-        get_together(name)
-    # res <- list(coefs = coefs, stats = stats)
-    # class(res) <- c("sg_formated_table", "stargate")
-    # res
-    dplyr::bind_rows(coefs, stats)
+        get_together(name, tabname = "stat")
+    structure(list(coefs = coefs, stats = stats),
+              class = c("sg_formatted_table", "stargate"))
+}
+
+
+
+# present table -----------------------------------------------------------
+
+#' @export
+sg_present <- function(x) {
+    if (!inherits(x, "sg_formatted_table"))
+        stop("x must be a sg formatted table")
+    coefs <- x$coefs
+    stats <- x$stats |>
+        dplyr::rename(term = stat)
+    tab <- dplyr::bind_rows(coefs, stats) |>
+        dplyr::select(term, dplyr::everything())
+    names(tab) <- c("", names(tab)[-1])
+    tab
 }
