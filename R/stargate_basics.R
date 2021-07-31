@@ -9,14 +9,8 @@
 # Copyright(c) Corporation Name
 # -------------------------------------
 
-# library(tibble)
-# library(dplyr)
-# library(broom)
-# library(tidyr)
-# library(purrr)
-# library(glue)
-# library(stringr)
 
+# sg model ----------------------------------------------------------------
 
 #' Convert an estimated model to a stargate model
 #'
@@ -55,6 +49,9 @@ sg_model.default <- function(m, name = "", ...) {
 }
 
 
+
+# sg table ----------------------------------------------------------------
+
 #' @export
 sg_table <- function(...) {
     count_models_in_tables <- function(x) {
@@ -92,57 +89,186 @@ sg_table <- function(...) {
 }
 
 
-#' @export
-sg_standard_stats <- function(type) {
-    list("r.squared" = "R2",
-      "adj.r.squared" = "Adj. R2",
-      "sigma" = NULL,
-      "statistic" = NULL,
-      "p.value" = NULL,
-      "df" = NULL,
-      "logLik" = "log Lik.",
-      "AIC" = NULL,
-      "BIC" = NULL,
-      "deviance" = NULL,
-      "df.residual" = NULL,
-      "nobs" = "No. of Observations")
+#' #' @export
+#' sg_standard_stats <- function(type) {
+#'     list("r.squared" = "R2",
+#'       "adj.r.squared" = "Adj. R2",
+#'       "sigma" = NULL,
+#'       "statistic" = NULL,
+#'       "p.value" = NULL,
+#'       "df" = NULL,
+#'       "logLik" = "log Lik.",
+#'       "AIC" = NULL,
+#'       "BIC" = NULL,
+#'       "deviance" = NULL,
+#'       "df.residual" = NULL,
+#'       "nobs" = "No. of Observations")
+#' }
+
+
+#' #' Renames estimated parameters and statisticts
+#' #'
+#' #' @param x A sg model or sg table.
+#' #' @param coefs The list of names to be changed.
+#' #' @param stats The list of statistics to be changed.
+#' #' @param name The list of model names to be changed.
+#' #' @return The sg model or sg table with changed names.
+#' #' @section Details:
+#' #'
+#' #' If you want to remove a parameter or a statistics, set it to NULL.
+#' #'
+#' #' @section Warnings:
+#' #'
+#' #' It cannot be run twice with the same table because it would rename statistics
+#' #' and then remove them.
+#' #'
+#' #' The change of model parameters is not implemented yet.
+#' #' @examples
+#' #' # st <- sg_rename(st, stats = sg_standard_stats())
+#' #' @export
+#' sg_rename <- function(x, coefs = NULL, stats = NULL, name = NULL) {
+#'     if (!(inherits(x, "sg_model") || inherits(x, "sg_table")))
+#'         stop("x must be either sg_model or sg_table")
+#'     if (!is.null(coefs))
+#'         stop("coefs not implemnted")
+#'     if (!is.null(stats)) {
+#'         keep_stats <- !purrr::map_lgl(stats, is.null)
+#'         stats <- stats[keep_stats]
+#'         x$stats <- dplyr::filter(x$stats, (stat %in% names(stats)))
+#'         for (s in seq_along(stats))
+#'             x$stats$stat[x$stat$stat == names(stats)[s]] <- stats[[s]]
+#'     }
+#'     x
+#' }
+
+
+
+
+# rename stuff ------------------------------------------------------------
+
+sg_rename <- function(x) {
+
 }
 
 
-#' Renames estimated parameters and statisticts
-#'
-#' @param x A sg model or sg table.
-#' @param coefs The list of names to be changed.
-#' @param stats The list of statistics to be changed.
-#' @param name The list of model names to be changed.
-#' @return The sg model or sg table with changed names.
-#' @section Details:
-#'
-#' If you want to remove a parameter or a statistics, set it to NULL.
-#'
-#' @section Warnings:
-#'
-#' It cannot be run twice with the same table because it would rename statistics
-#' and then remove them.
-#'
-#' The change of model parameters is not implemented yet.
-#' @examples
-#' # st <- sg_rename(st, stats = sg_standard_stats())
-#' @export
-sg_rename <- function(x, coefs = NULL, stats = NULL, name = NULL) {
-    if (!(inherits(x, "sg_model") || inherits(x, "sg_table")))
-        stop("x must be either sg_model or sg_table")
-    if (!is.null(coefs))
-        stop("coefs not implemnted")
-    if (!is.null(stats)) {
-        keep_stats <- !purrr::map_lgl(stats, is.null)
-        stats <- stats[keep_stats]
-        x$stats <- dplyr::filter(x$stats, (stat %in% names(stats)))
-        for (s in seq_along(stats))
-            x$stats$stat[x$stat$stat == names(stats)[s]] <- stats[[s]]
-    }
+
+# remove stuff ------------------------------------------------------------
+
+sg_remove_coefs_or_stats <- function(x, var, val, regex = FALSE) {
+    if (!(inherits(x, "sg_model") || inherits(x, "sg_table") || inherits(x, "sg_formatted_table")))
+        stop("x must be a stargate object")
+    if (is.null(val) || !((is.numeric(val) || is.character(val)) && length(val) >= 1))
+        stop(var, " must be a non-empty character of numeric vector")
+    term <- "bug"
+    if (var == "coefs")
+        term <- "term"
+    if (var == "stats")
+        term <- "stat"
+    if (term == "bug")
+        stop("var must be either coefs or stats")
+
+    if (is.numeric(val))
+        x[[var]] <- x[[var]][-val, ]
+    if (is.character(val))
+        for (cf in val) {
+            if (regex) {
+                x[[var]] <- dplyr::filter(x[[var]],
+                                          stringr::str_detect(dplyr::across({{ term }}), cf, negate = TRUE))
+            } else {
+                x[[var]] <- dplyr::filter(x[[var]], !(dplyr::across({{ term }}) == cf))
+            }
+        }
     x
 }
+
+
+#' @describeIn sg_remove Removes only parameter estimates.
+#' @export
+sg_remove_coefs <- function(x, coefs, regex = FALSE) {
+    sg_remove_coefs_or_stats(x, var = "coefs", val = coefs, regex = regex)
+}
+
+
+#' @describeIn sg_remove Removes only model statistics.
+#' @export
+sg_remove_stats <- function(x, stats = NULL, regex = FALSE) {
+    sg_remove_coefs_or_stats(x, var = "stats", val = stats, regex = regex)
+}
+
+
+#' Remove estimated parameters or model statistics
+#'
+#' These functions remove estimated parameters and/or model statistics from the
+#' stargate models, tables, and formatted tables. The removed items may be
+#' identified by position or a name.
+#'
+#' @param x A stargate model, table, or formatted table.
+#' @param coefs The parameter estimates that should be removed. Either
+#'     a non-empty numeric or character vector. If a numeric vector,
+#'     the estimates on the given positions are removed. If a character vector,
+#'     the estimates with given names are removed. See regex parameter.
+#' @param stats The model statistics that should be removed. Either
+#'     a non-empty numeric or character vector. If a numeric vector,
+#'     the statistics on the given positions are removed. If a character vector,
+#'     the statistics with given names are removed. See regex parameter.
+#' @param regex A logical scalar. If \code{TRUE}, coefs and stats are regular
+#'     expressions. If \code{FALSE} (a default), they are taken literally.
+#' @return A stargate model, table, or formatted table.
+#' @details If the removed items are identified with names and the regex is
+#'     \code{TRUE}, they are used as successive rules: the parameters that
+#'     are matched by \code{coefs[1]} are removed first, then the parameters
+#'     that are matched by \code{coefs[2]} and so on; the same for statistics.
+#' @export
+#'
+#' @examples
+#' library(tibble)
+#' n <- 1e3
+#' df <- tibble(
+#'     x1 = rnorm(n),
+#'     x2 = rnorm(n),
+#'     x3 = rnorm(n),
+#'     e  = rnorm(n),
+#'     y  = x1 - 2 * x2 + 3 * x3 + e
+#' )
+#'
+#' m1 <- lm(y ~ x1 + x2, df)
+#' m2 <- lm(y ~ x1 + x2 + x3, df)
+#' m3 <- lm(y ~ x1 + x2 * x3, df)
+#' sm1 <- sg_model(m1)
+#' stab <- sg_table(sm1, m2, m3)
+#'
+#' sg_remove_coefs(sm1, coefs = 1)
+#' sg_remove_stats(sm1, stats = "nobs")
+#' sg_remove(stab, coefs = "x1", stats = c("df", "nobs"))
+sg_remove <- function(x, coefs = NULL, stats = NULL, regex = FALSE) {
+    if (!(inherits(x, "sg_model") || inherits(x, "sg_table") || inherits(x, "sg_formatted_table")))
+        stop("x must be a stargate object")
+    if (!is.null(coefs))
+        x <- sg_remove_coefs(x, coefs, regex = regex)
+    if (!is.null(stats))
+        x <- sg_remove_stats(x, stats, regex = regex)
+    x
+}
+
+
+
+# replace stuff -----------------------------------------------------------
+
+sg_replace <- function(x) {
+
+}
+
+
+
+# reorder stuff -----------------------------------------------------------
+
+sg_reorder <- function(x) {
+
+}
+
+
+
+# format table ------------------------------------------------------------
 
 
 formatted <- function(x, nsmall = 2, ...) {
