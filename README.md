@@ -6,8 +6,23 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of stargate is to simplify production of formatted tables that
-hold regression analysis results from several models side-by-side.
+The goal of **stargate** package is to simplify production of formatted
+tables that hold regression analysis results from several models
+side-by-side.
+
+For many years, we have used **stargazer** package for this purpose.
+**stargazer** is great and every applied econometrician has to be
+thankful to Marek Hlaváč for kindly providing it. However, this package
+is implemented as one monolithic function, which has two drawbacks:
+
+1.  It is very difficult for an user to implement a method for an
+    estimated object not covered in **stargazer**.
+2.  It has too many complex parameters. A set of lightweight
+    manipulation function joined with pipes (in the tidyverse style)
+    seems preferable.
+
+This package is an attempt to rewrite **stargazer** in this fashion. To
+pay homage to the original package, it is named similarly: **stargate**.
 
 ## Installation
 
@@ -19,7 +34,8 @@ install.packages("stargate")
 ```
 -->
 
-And the development version from [GitHub](https://github.com/) with:
+At the present time, there is only the development version. It is
+available from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
