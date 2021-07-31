@@ -154,10 +154,12 @@ sg_rename <- function(x) {
 
 # remove stuff ------------------------------------------------------------
 
-sg_remove_coefs_or_stats <- function(x, var, val, regex = FALSE) {
-    if (!(inherits(x, "sg_model") || inherits(x, "sg_table") || inherits(x, "sg_formatted_table")))
+sg_remove_coefs_or_stats <- function(x, var, val, keep = FALSE, regex = FALSE) {
+    if (!(inherits(x, "sg_model") || inherits(x, "sg_table") ||
+          inherits(x, "sg_formatted_table")))
         stop("x must be a stargate object")
-    if (is.null(val) || !((is.numeric(val) || is.character(val)) && length(val) >= 1))
+    if (is.null(val) || !((is.numeric(val) || is.character(val))
+                          && length(val) >= 1))
         stop(var, " must be a non-empty character of numeric vector")
     term <- "bug"
     if (var == "coefs")
@@ -166,33 +168,27 @@ sg_remove_coefs_or_stats <- function(x, var, val, regex = FALSE) {
         term <- "stat"
     if (term == "bug")
         stop("var must be either coefs or stats")
+    if (!(is.logical(keep) && length(keep == 1)))
+        stop("keep must be either TRUE or FALSE")
 
+    keep_num <- as.integer(keep) * 2 - 1
+    keep_log <- identity
+    if (!keep)
+        keep_log <- Negate(keep_log)
     if (is.numeric(val))
-        x[[var]] <- x[[var]][-val, ]
+        x[[var]] <- x[[var]][keep_num * val, ]
     if (is.character(val))
-        for (cf in val) {
-            if (regex) {
-                x[[var]] <- dplyr::filter(x[[var]],
-                                          stringr::str_detect(dplyr::across({{ term }}), cf, negate = TRUE))
-            } else {
-                x[[var]] <- dplyr::filter(x[[var]], !(dplyr::across({{ term }}) == cf))
-            }
+        if (regex) {
+            for (cf in val)
+                # x[[var]] <-
+                #     dplyr::filter(x[[var]],
+                #                   stringr::str_detect(dplyr::across({{ term }}),
+                #                                       cf, negate = !keep))
+            x[[var]] <- x[[var]][stringr::str_detect(x[[var]][[term]], cf, negate = !keep), ]
+        } else {
+            x[[var]] <- x[[var]][keep_log(x[[var]][[term]] %in% val), ]
         }
     x
-}
-
-
-#' @describeIn sg_remove Removes only parameter estimates.
-#' @export
-sg_remove_coefs <- function(x, coefs, regex = FALSE) {
-    sg_remove_coefs_or_stats(x, var = "coefs", val = coefs, regex = regex)
-}
-
-
-#' @describeIn sg_remove Removes only model statistics.
-#' @export
-sg_remove_stats <- function(x, stats = NULL, regex = FALSE) {
-    sg_remove_coefs_or_stats(x, var = "stats", val = stats, regex = regex)
 }
 
 
@@ -206,18 +202,25 @@ sg_remove_stats <- function(x, stats = NULL, regex = FALSE) {
 #' @param coefs The parameter estimates that should be removed. Either
 #'     a non-empty numeric or character vector. If a numeric vector,
 #'     the estimates on the given positions are removed. If a character vector,
-#'     the estimates with given names are removed. See regex parameter.
+#'     the estimates with given names are removed. See \code{regex} parameter.
 #' @param stats The model statistics that should be removed. Either
 #'     a non-empty numeric or character vector. If a numeric vector,
 #'     the statistics on the given positions are removed. If a character vector,
-#'     the statistics with given names are removed. See regex parameter.
-#' @param regex A logical scalar. If \code{TRUE}, coefs and stats are regular
-#'     expressions. If \code{FALSE} (a default), they are taken literally.
+#'     the statistics with given names are removed. See \code{regex} parameter.
+#' @param keep A logical scalar. If \code{FALSE} (a default), the identified
+#'     parameters and/or statistics are removed. If \code{TRUE}, only the
+#'     identified parameters and/or statistics are kept.
+#' @param regex A logical scalar. If \code{TRUE}, \code{coefs} and stats are
+#'     regular expressions. If \code{FALSE} (a default), they are taken
+#'     literally.
 #' @return A stargate model, table, or formatted table.
-#' @details If the removed items are identified with names and the regex is
-#'     \code{TRUE}, they are used as successive rules: the parameters that
-#'     are matched by \code{coefs[1]} are removed first, then the parameters
-#'     that are matched by \code{coefs[2]} and so on; the same for statistics.
+#' @details If the removed items are identified with names and the \code{regex}
+#'     is \code{TRUE}, they are used as successive rules. If \code{keep} is
+#'     \code{FALSE}, the parameters that are matched by \code{coefs[1]} are
+#'     removed first, then the parameters that are matched by \code{coefs[2]}
+#'     and so on; the same for statistics.
+#'     If \code{keep} is \code{FALSE}, the list of parameters and/or statistics
+#'     is successively narrowed down.
 #' @export
 #'
 #' @examples
@@ -240,15 +243,35 @@ sg_remove_stats <- function(x, stats = NULL, regex = FALSE) {
 #' sg_remove_coefs(sm1, coefs = 1)
 #' sg_remove_stats(sm1, stats = "nobs")
 #' sg_remove(stab, coefs = "x1", stats = c("df", "nobs"))
-sg_remove <- function(x, coefs = NULL, stats = NULL, regex = FALSE) {
+#' sg_remove(stab, stats = c("r.squared", "logLik", "nobs"), keep = TRUE)
+sg_remove <- function(x, coefs = NULL, stats = NULL,
+                      keep = FALSE, regex = FALSE) {
     if (!(inherits(x, "sg_model") || inherits(x, "sg_table") || inherits(x, "sg_formatted_table")))
         stop("x must be a stargate object")
     if (!is.null(coefs))
-        x <- sg_remove_coefs(x, coefs, regex = regex)
+        x <- sg_remove_coefs(x, coefs = coefs, keep = keep, regex = regex)
     if (!is.null(stats))
-        x <- sg_remove_stats(x, stats, regex = regex)
+        x <- sg_remove_stats(x, stats = stats, keep = keep, regex = regex)
     x
 }
+
+
+#' @describeIn sg_remove Removes only parameter estimates.
+#' @export
+sg_remove_coefs <- function(x, coefs, keep = FALSE, regex = FALSE) {
+    sg_remove_coefs_or_stats(x, var = "coefs", val = coefs,
+                             keep = keep, regex = regex)
+}
+
+
+#' @describeIn sg_remove Removes only model statistics.
+#' @export
+sg_remove_stats <- function(x, stats = NULL, keep = FALSE, regex = FALSE) {
+    sg_remove_coefs_or_stats(x, var = "stats", val = stats,
+                             keep = keep, regex = regex)
+}
+
+
 
 
 
