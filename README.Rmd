@@ -26,8 +26,13 @@ For many years, we have used **stargazer** package for this purpose. **stargazer
 
 1. It is very difficult for an user to implement a method for an estimated object not covered in **stargazer**.
 2. It has too many complex parameters. A set of lightweight manipulation function joined with pipes (in the tidyverse style) seems preferable.
+3. It has its own output filters to LaTeX, HTML, etc., and hence it is impossible to customize output for your own liking.
 
-This package is an attempt to rewrite **stargazer** in this fashion. To pay homage to the original package, it is named similarly: **stargate**.
+This package is an attempt to rewrite **stargazer** remove these obstacles. To pay homage to the original package, it is named similarly: **stargate**.
+
+1. Every estimated object class should have its own method to convert the estimate into a standard format. The broom is used now but dedicated methods would be provided later to customize the process, e.g.\ to include robust SEs.
+2. The workflow must be based on simples function that send their outputs between themselves through pipes.
+3. The final output must be a *tibble* (convertible to *data.frame*, etc.), and hence everyone can create the final table with any tool that suits him or her, e.g.\ `kbl()` from **kableExtra**.
 
 However, this package is just in a rudimentary state---it is more a proof of the concept and a playground than a real thing. It is here to raise some feedback, comments, and wishes. If used, it must be used with extreme care:
 
@@ -134,3 +139,12 @@ sg_table(sm1, m2, m3) |>
     kable_classic()
 ```
 
+
+
+## What next
+
+* Implement the stuff. :-)
+* Provide methods for estimation objects.
+* Write a vignette how to write a new method.
+* Provide some auto-setup for the function to simplify the process.
+* Tune the output to LaTeX, HTML, Markdown, and possibly Word/LibreOffice.

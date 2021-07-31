@@ -20,9 +20,22 @@ is implemented as one monolithic function, which has two drawbacks:
 2.  It has too many complex parameters. A set of lightweight
     manipulation function joined with pipes (in the tidyverse style)
     seems preferable.
+3.  It has its own output filters to LaTeX, HTML, etc., and hence it is
+    impossible to customize output for your own liking.
 
-This package is an attempt to rewrite **stargazer** in this fashion. To
-pay homage to the original package, it is named similarly: **stargate**.
+This package is an attempt to rewrite **stargazer** remove these
+obstacles. To pay homage to the original package, it is named similarly:
+**stargate**.
+
+1.  Every estimated object class should have its own method to convert
+    the estimate into a standard format. The broom is used now but
+    dedicated methods would be provided later to customize the process,
+    e.g. to include robust SEs.
+2.  The workflow must be based on simples function that send their
+    outputs between themselves through pipes.
+3.  The final output must be a *tibble* (convertible to *data.frame*,
+    etc.), and hence everyone can create the final table with any tool
+    that suits him or her, e.g. `kbl()` from **kableExtra**.
 
 However, this package is just in a rudimentary state—it is more a proof
 of the concept and a playground than a real thing. It is here to raise
@@ -129,12 +142,12 @@ kbl(sftab, format = "pipe") |>
 
 |           | \(1\)              | \(2\)              | \(3\)              |
 |:----------|:-------------------|:-------------------|:-------------------|
-| x1        | 1.08\*\*\* (0.10)  | 0.98\*\*\* (0.03)  | 0.98\*\*\* (0.03)  |
-| x2        | -2.13\*\*\* (0.10) | -2.05\*\*\* (0.03) | -2.05\*\*\* (0.03) |
-| x3        |                    | 3.01\*\*\* (0.03)  | 3.01\*\*\* (0.03)  |
-| x2:x3     |                    |                    | 0.03 (0.03)        |
-| r.squared | 0.36               | 0.93               | 0.93               |
-| logLik    | -2549.63           | -1439.87           | -1439.55           |
+| x1        | 1.12\*\*\* (0.10)  | 0.95\*\*\* (0.03)  | 0.95\*\*\* (0.03)  |
+| x2        | -1.88\*\*\* (0.10) | -1.97\*\*\* (0.03) | -1.97\*\*\* (0.03) |
+| x3        |                    | 2.96\*\*\* (0.03)  | 2.96\*\*\* (0.03)  |
+| x2:x3     |                    |                    | 0.00 (0.03)        |
+| r.squared | 0.34               | 0.93               | 0.93               |
+| logLik    | -2561.52           | -1442.20           | -1442.19           |
 | nobs      | 1000               | 1000               | 1000               |
 
 Or do all that at once:
@@ -159,10 +172,19 @@ sg_table(sm1, m2, m3) |>
 
 |           | \(1\)              | \(2\)              | \(3\)              |
 |:----------|:-------------------|:-------------------|:-------------------|
-| x1        | 1.08\*\*\* (0.10)  | 0.98\*\*\* (0.03)  | 0.98\*\*\* (0.03)  |
-| x2        | -2.13\*\*\* (0.10) | -2.05\*\*\* (0.03) | -2.05\*\*\* (0.03) |
-| x3        |                    | 3.01\*\*\* (0.03)  | 3.01\*\*\* (0.03)  |
-| x2:x3     |                    |                    | 0.03 (0.03)        |
-| r.squared | 0.36               | 0.93               | 0.93               |
-| logLik    | -2549.63           | -1439.87           | -1439.55           |
+| x1        | 1.12\*\*\* (0.10)  | 0.95\*\*\* (0.03)  | 0.95\*\*\* (0.03)  |
+| x2        | -1.88\*\*\* (0.10) | -1.97\*\*\* (0.03) | -1.97\*\*\* (0.03) |
+| x3        |                    | 2.96\*\*\* (0.03)  | 2.96\*\*\* (0.03)  |
+| x2:x3     |                    |                    | 0.00 (0.03)        |
+| r.squared | 0.34               | 0.93               | 0.93               |
+| logLik    | -2561.52           | -1442.20           | -1442.19           |
 | nobs      | 1000               | 1000               | 1000               |
+
+## What next
+
+-   Implement the stuff. :-)
+-   Provide methods for estimation objects.
+-   Write a vignette how to write a new method.
+-   Provide some auto-setup for the function to simplify the process.
+-   Tune the output to LaTeX, HTML, Markdown, and possibly
+    Word/LibreOffice.
