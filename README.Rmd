@@ -133,7 +133,7 @@ Or do all that at once:
 sg_table(sm1, m2, m3) |> 
     sg_remove(coefs = "Interc", regex = TRUE) |> 
     sg_remove(stats = c("r.squared", "logLik", "nobs"), keep = TRUE) |> 
-    sg_format() |> 
+    sg_format(nsmall = 3) |> 
     sg_present() |> 
     kbl(format = "pipe") |> 
     kable_classic()

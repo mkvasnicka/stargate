@@ -346,7 +346,11 @@ sg_format_stats <- function(stats, nsmall = 2, ...) {
 
 
 #' @export
-sg_format <- function(tab, nsmall = 2, ...) {
+sg_format <- function(tab,
+                      format = "{estimate}{stars} ({std.error})",
+                      nsmall = 2,
+                      stars = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
+                      ...) {
     name <- dplyr::if_else(tab$name$name == "",
                            stringr::str_c("(", seq_along(tab$name$name), ")"),
                            tab$name$name
@@ -362,7 +366,10 @@ sg_format <- function(tab, nsmall = 2, ...) {
             stats::setNames(c(tabname, name))
     }
     coefs <- tab$coefs |>
-        sg_format_coefs(nsmall = nsmall, ...) |>
+        sg_format_coefs(format = format,
+                        nsmall = nsmall,
+                        stars = stars,
+                        ...) |>
         get_together(name, tabname = "term")
     stats <- tab$stats |>
         sg_format_stats(nsmall = nsmall, ...) |>
