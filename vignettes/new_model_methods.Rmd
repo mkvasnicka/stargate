@@ -97,6 +97,17 @@ The present structure is not sufficient to cover the results of **fixest**'s est
 1. the ability to include "word" parameters, e.g.\ "Yes" for the fixed effects and
 2. the ability to keep the information on the kind of standard errors the model estimates, e.g.\ "heteroskedasticity-robust"
 
+There are many ways how to handle it:
+
+1. "word parameters":
+    - add them to `coefs` table to the `estimate` column---it would have to be a list column
+    - create a new table
+    - ???
+2. standard error information:
+    - add them to `stats` table
+    - add a new table
+    - ???
+
 It is necessary to design how to include these things into the data structure. Moreover, it is necessary to find out which other items are presently missing to make the structure rich enough to be able to encompass most of the estimated models without a loss of information.
 
 *TODO*
