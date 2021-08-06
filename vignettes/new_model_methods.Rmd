@@ -1,0 +1,76 @@
+---
+title: "How to create a new model method"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to create a new model method}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+# library(stargate)
+```
+
+This vignette discusses why and how create a new `sg_model()` method. 
+
+
+
+## Why new methods for `sg_model()`
+
+Let's see it in the case of **fixest** package. The package allows us to do several things at once: to estimate fixed effects, to compute heteroskedastic clustered standard errors, etc. Let's see a simple example modified from its vignette. It estimate a Poisson model with four fixed effects, heteroskedastic standard errors clustered on Origin:
+
+```{r}
+library(fixest)
+data(trade)
+gravity_pois <- fepois(Euros ~ log(dist_km) | Origin + Destination + Product + Year,
+                       se = "hetero",
+                       trade)
+```
+
+**fixest** origina function presents all these pieces of information in a nice table:
+
+```{r}
+etable(gravity_pois)
+```
+
+However, these pieces are partially lost with the `summary()` function:
+
+```{r}
+summary(gravity_pois)
+```
+
+They are *completely* lost with **broom**'s `tidy()` function:
+
+```{r}
+library(broom)
+tidy(gravity_pois)
+```
+
+As the default method of `sg_model()` uses **broom**'s `tidy()` and `glance()` functions, the information is lost too. This way, we have only three options: 
+
+1. We stick with **fixest**'s `etable()`. This way we have to use a special presentation function for each estimation package we use---and we cannot mix estimates from different packages in one table. Moreover, most packages simply do not provide such a nice function as **fixest** does.
+
+2. We use the default method of `sg_model()`. This way we can use the same workflow for every estimation package we use (provided that **broom** has methods for it) and we can combine different models in one table. However, we loose important pieces of information.
+
+3. We write a new method for `sg_model()` which keeps all the information.
+
+Moreover, **broom** does not implement `tidy()` and `glance` for each estimation function in the wild and these packages provide at most a specific method of `summary()` function. In this case, the new method of `sg_model()` may be our only chance.
+
+
+
+## The structure of `sg_model` class
+
+*TODO*
+
+
+
+## How to write a new `sg_model()` method
+
+*TODO*
