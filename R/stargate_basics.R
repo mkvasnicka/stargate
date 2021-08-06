@@ -89,76 +89,84 @@ sg_table <- function(...) {
 }
 
 
-#' #' @export
-#' sg_standard_stats <- function(type) {
-#'     list("r.squared" = "R2",
-#'       "adj.r.squared" = "Adj. R2",
-#'       "sigma" = NULL,
-#'       "statistic" = NULL,
-#'       "p.value" = NULL,
-#'       "df" = NULL,
-#'       "logLik" = "log Lik.",
-#'       "AIC" = NULL,
-#'       "BIC" = NULL,
-#'       "deviance" = NULL,
-#'       "df.residual" = NULL,
-#'       "nobs" = "No. of Observations")
-#' }
-
-
-#' #' Renames estimated parameters and statisticts
-#' #'
-#' #' @param x A sg model or sg table.
-#' #' @param coefs The list of names to be changed.
-#' #' @param stats The list of statistics to be changed.
-#' #' @param name The list of model names to be changed.
-#' #' @return The sg model or sg table with changed names.
-#' #' @section Details:
-#' #'
-#' #' If you want to remove a parameter or a statistics, set it to NULL.
-#' #'
-#' #' @section Warnings:
-#' #'
-#' #' It cannot be run twice with the same table because it would rename statistics
-#' #' and then remove them.
-#' #'
-#' #' The change of model parameters is not implemented yet.
-#' #' @examples
-#' #' # st <- sg_rename(st, stats = sg_standard_stats())
-#' #' @export
-#' sg_rename <- function(x, coefs = NULL, stats = NULL, name = NULL) {
-#'     if (!(inherits(x, "sg_model") || inherits(x, "sg_table")))
-#'         stop("x must be either sg_model or sg_table")
-#'     if (!is.null(coefs))
-#'         stop("coefs not implemnted")
-#'     if (!is.null(stats)) {
-#'         keep_stats <- !purrr::map_lgl(stats, is.null)
-#'         stats <- stats[keep_stats]
-#'         x$stats <- dplyr::filter(x$stats, (stat %in% names(stats)))
-#'         for (s in seq_along(stats))
-#'             x$stats$stat[x$stat$stat == names(stats)[s]] <- stats[[s]]
-#'     }
-#'     x
-#' }
-
-
-
 
 # rename stuff ------------------------------------------------------------
 
-sg_rename <- function(x, coefs = NULL, stats = NULL) {
-
-}
-
-
-sg_rename_coefs <- function(x, coefs) {
+#' Title Rename Coefficients or Statistics in a Stargate Model or Model Table
+#'
+#' @param x A stargate model or model table.
+#' @param coefs A named character vector or a tibble with two columns: pattern
+#'     and value.
+#' @param stats A named character vector or a tibble with two columns: pattern
+#'     and value.
+#' @param regex A logical; \code{FALSE} by default.
+#'
+#' @section Details:
+#'
+#' If \code{regex} is \code{FALSE}, every coefficient or statistics which name
+#' is equal to a pattern is completely replaced by a value. If \code{regex} is
+#'  \code{TRUE}, stringr::str_replace_all() function is used.
+#'
+#' The individual items in \code{coefs} and \code{stats} are used sequentially
+#' as rules which modify the results of the previous rules
+#'
+#' @return The same class as x.
+#' @export
+#'
+#' @examples
+#' n <- 1e3
+#' df <- tibble(
+#'     x1 = rnorm(n),
+#'     x2 = rnorm(n),
+#'     x3 = rnorm(n),
+#'     e  = rnorm(n),
+#'     y  = x1 - 2 * x2 + 3 * x3 + e
+#' )
+#'
+#' m1 <- lm(y ~ x1 + x2, df)
+#' m2 <- lm(y ~ x1 + x2 + x3, df)
+#' m3 <- lm(y ~ x1 + x2 * x3, df)
+#' stab <- sg_table(m1, m2, m3)
+#'
+#' stab |> sg_rename(coefs = c("a" = "x"))
+#' stab |> sg_rename(coefs = c("a" = "x1"))
+#' stab |> sg_rename(coefs = c("a" = "x", " x " = ":"), regex = TRUE)
+sg_rename <- function(x, coefs = NULL, stats = NULL, regex = FALSE) {
     if (!(inherits(x, "sg_model") || inherits(x, "sg_table") ||
           inherits(x, "sg_formatted_table")))
         stop("x must be a stargate object")
     if (!((is.character(coefs) && length(coefs >= 1) && !is.null(names(coefs))) ||
-          (is.data.frame(coefs) && ncol == 2 && nrow >= 1)))
+          (is.data.frame(coefs) && ncol == 2 && nrow >= 1) || is.null(coefs)))
         stop("coefs must be a non-empty named character vector or a non-empty",
              " data.frame with two columns")
+    if (!((is.character(stats) && length(stats >= 1) && !is.null(names(stats))) ||
+          (is.data.frame(stats) && ncol == 2 && nrow >= 1) || is.null(stats)))
+        stop("stats must be a non-empty named character vector or a non-empty",
+             " data.frame with two columns")
+
+    if (!is.null(coefs))
+        x$coefs <- sg_rename_coefs_or_stats(x$coefs, rules = coefs,
+                                            what = "term", regex = regex)
+    if (!is.null(stats))
+        x$stats <- sg_rename_coefs_or_stats(x$stats, rules = stats,
+                                            what = "stat", regex = regex)
+    x
+}
+
+
+sg_rename_coefs_or_stats <- function(x, rules, what, regex) {
+    if (is.character(rules))
+        rules <- tibble::tibble(pattern = as.character(rules),
+                                value = names(rules))
+    for (k in base::seq_len(base::nrow(rules)))
+        if (regex) {
+            x[[what]] <- stringr::str_replace_all(x[[what]],
+                                                  rules$pattern[k],
+                                                  rules$value[k])
+        } else {
+            x[[what]][x[[what]] == rules$pattern[k]] <- rules$value[k]
+        }
+    x
 }
 
 

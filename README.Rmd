@@ -105,6 +105,14 @@ stab <- stab |>
     sg_remove(stats = c("r.squared", "logLik", "nobs"), keep = TRUE)
 ```
 
+Rename coefficients and statistics as you like:
+
+```{r}
+stab <- stab |> 
+    sg_rename(coefs = c("a" = "x", " x " = ":"), regex = TRUE) |> 
+    sg_rename(stats = c("R2" = "r.squared", "log Lik." = "logLik"))
+```
+
 Format the table:
 
 ```{r sg format}
@@ -133,6 +141,9 @@ Or do all that at once:
 sg_table(sm1, m2, m3) |> 
     sg_remove(coefs = "Interc", regex = TRUE) |> 
     sg_remove(stats = c("r.squared", "logLik", "nobs"), keep = TRUE) |> 
+    sg_rename(coefs = c("a" = "x", " x " = ":"), regex = TRUE) |> 
+    sg_rename(stats = c("R2" = "r.squared", "log Lik." = "logLik",
+                        "num. of. obs." = "nobs")) |> 
     sg_format(style = c("{estimate}", "({std.error})"),
               format = list(nsmall = 3)) |> 
     sg_present() |> 
