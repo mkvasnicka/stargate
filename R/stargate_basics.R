@@ -310,7 +310,7 @@ formatted <- function(x, nsmall = 2, ...) {
 }
 
 
-sg_format_coefs <- function(x,
+sg_format_coefs <- function(coefs,
                             format = "{estimate}{stars} ({std.error})",
                             nsmall = 2,
                             stars = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
@@ -323,27 +323,25 @@ sg_format_coefs <- function(x,
             stringr::str_pad(width, side = "right")
     }
 
-    x$coefs <- x$coefs |>
-        dplyr::mutate(formated_coefs = glue::glue(format,
-                                     estimate = formatted(estimate, nsmall = nsmall, ...),
-                                     std.error = formatted(std.error, nsmall = nsmall, ...),
-                                     statistic = formatted(statistic, nsmall = nsmall, ...),
-                                     p.value = formatted(p.value, nsmall = nsmall, ...),
-                                     stars = starred(p.value)),
-               formated_coefs = as.character(formated_coefs))
-    x
+    dplyr::mutate(coefs,
+                  formated_coefs = glue::glue(format,
+                                              estimate = formatted(estimate, nsmall = nsmall, ...),
+                                              std.error = formatted(std.error, nsmall = nsmall, ...),
+                                              statistic = formatted(statistic, nsmall = nsmall, ...),
+                                              p.value = formatted(p.value, nsmall = nsmall, ...),
+                                              stars = starred(p.value)),
+                  formated_coefs = as.character(formated_coefs))
 }
 
 
-sg_format_stats <- function(x, nsmall = 2, ...) {
-    x$stats <- x$stats |>
-        dplyr::mutate(formatted_stats = purrr::map_chr(val,
-                                                       ~dplyr::case_when(
-                                                           is.integer(.) ~ formatted(., nsmall = 0, ...),
-                                                           is.double(.) ~ formatted(., nsmall = nsmall, ...),
-                                                           TRUE ~ as.character(.)
-                                                       )))
-    x
+sg_format_stats <- function(stats, nsmall = 2, ...) {
+    dplyr::mutate(stats,
+                  formatted_stats = purrr::map_chr(val,
+                                                   ~dplyr::case_when(
+                                                       is.integer(.) ~ formatted(., nsmall = 0, ...),
+                                                       is.double(.) ~ formatted(., nsmall = nsmall, ...),
+                                                       TRUE ~ as.character(.)
+                                                   )))
 }
 
 
@@ -363,13 +361,11 @@ sg_format <- function(tab, nsmall = 2, ...) {
                                  ~stringr::str_replace_na(., replacement = ""))) |>
             stats::setNames(c(tabname, name))
     }
-    coefs <- tab |>
+    coefs <- tab$coefs |>
         sg_format_coefs(nsmall = nsmall, ...) |>
-        purrr::pluck("coefs") |>
         get_together(name, tabname = "term")
-    stats <- tab |>
+    stats <- tab$stats |>
         sg_format_stats(nsmall = nsmall, ...) |>
-        purrr::pluck("stats") |>
         get_together(name, tabname = "stat")
     structure(list(coefs = coefs, stats = stats),
               class = c("sg_formatted_table", "stargate"))
