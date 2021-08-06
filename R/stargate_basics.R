@@ -52,6 +52,27 @@ sg_model.default <- function(m, name = "", ...) {
 
 # sg table ----------------------------------------------------------------
 
+split_model_table <- function(tab) {
+    coefs <- tab$coefs |>
+        dplyr::group_by(model_id) |>
+        dplyr::group_split(.keep = FALSE)
+    stats <- tab$stats |>
+        dplyr::group_by(model_id) |>
+        dplyr::group_split(.keep = FALSE)
+    name <- tab$name |>
+        dplyr::group_by(model_id) |>
+        dplyr::group_split(.keep = FALSE)
+    base::structure(purrr::pmap(list(coefs, stats, name),
+                                function(coefs, stats, name)
+                                    structure(list(coefs = coefs,
+                                                   stats = stats,
+                                                   name = name),
+                                              class = c("sg_model", "stargate"))),
+                    class = c("sg_model_list", "stargate")
+    )
+
+}
+
 #' Join Several stargate Models into one stargate Table
 #'
 #' @param ... stargate models or model tables.
@@ -74,38 +95,56 @@ sg_model.default <- function(m, name = "", ...) {
 #' m3 <- lm(y ~ x1 + x2 * x3, df)
 #' sm1 <- sg_model(m1)
 #' stab <- sg_table(sm1, m2, m3)
-# TODO: opravit mechanismus číslování modelů (a možná přidat číslo modelu i do sg_model)
+# sg_table <- function(...) {
+#     count_models_in_tables <- function(x) {
+#         count <- purrr::map_int(x,
+#                                 ~ dplyr::case_when(
+#                                     inherits(., "sg_model") ~ 0L,
+#                                     inherits(., "sg_table") ~ length(unique(.$name$model_id)),
+#                                     TRUE ~ -1L
+#                                 ))
+#         if (any(count == -1L)) stop("OOOOOoooo!")
+#         sum(count)
+#     }
+#     add_model_id <- function(x, var, id) {
+#         {tab <- x[[var]]
+#         if (inherits(x, "sg_model"))
+#             tab <- tab |>
+#                 dplyr::mutate(model_id = id) |>
+#                 dplyr::select(model_id, dplyr::everything())
+#         tab}
+#     }
+#     mods <- list(...)
+#     mods <- purrr::map(mods, sg_model)
+#     first_model_id <- count_models_in_tables(mods)
+#     model_ids <- first_model_id + mods |>
+#         purrr::map_int(~class(.)[1] == "sg_model") |>
+#         cumsum()
+#     coefs <- purrr::map2(mods, model_ids, ~add_model_id(.x, "coefs", .y)) |>
+#         dplyr::bind_rows()
+#     stats <- purrr::map2(mods, model_ids, ~add_model_id(.x, "stats", .y)) |>
+#         dplyr::bind_rows()
+#     name <- purrr::map2(mods, model_ids, ~add_model_id(.x, "name", .y)) |>
+#         dplyr::bind_rows()
+#     structure(list(coefs = coefs, stats = stats, name = name),
+#               class = c("sg_table", "stargate"))
+# }
 sg_table <- function(...) {
-    count_models_in_tables <- function(x) {
-        count <- purrr::map_int(x,
-                                ~ dplyr::case_when(
-                                    inherits(., "sg_model") ~ 0L,
-                                    inherits(., "sg_table") ~ length(unique(.$name$model_id)),
-                                    TRUE ~ -1L
-                                ))
-        if (any(count == -1L)) stop("OOOOOoooo!")
-        sum(count)
-    }
-    add_model_id <- function(x, var, id) {
-        {tab <- x[[var]]
-        if (inherits(x, "sg_model"))
-            tab <- tab |>
-                dplyr::mutate(model_id = id) |>
-                dplyr::select(model_id, dplyr::everything())
-        tab}
-    }
-    mods <- list(...)
-    mods <- purrr::map(mods, sg_model)
-    first_model_id <- count_models_in_tables(mods)
-    model_ids <- first_model_id + mods |>
-        purrr::map_int(~class(.)[1] == "sg_model") |>
-        cumsum()
-    coefs <- purrr::map2(mods, model_ids, ~add_model_id(.x, "coefs", .y)) |>
-        dplyr::bind_rows()
-    stats <- purrr::map2(mods, model_ids, ~add_model_id(.x, "stats", .y)) |>
-        dplyr::bind_rows()
-    name <- purrr::map2(mods, model_ids, ~add_model_id(.x, "name", .y)) |>
-        dplyr::bind_rows()
+    mods <- list(...) |>
+        purrr::map(sg_model) |>
+        purrr::map_if(~inherits(., "sg_table"),
+                      split_model_table)
+    models <- list()
+    for (k in seq_along(mods))
+        if (inherits(mods[[k]], "sg_model_list")) {
+            for (l in seq_along(mods[[k]]))
+                models[[length(models) + 1]] <- mods[[k]][[l]]
+        } else {
+            models[[length(models) + 1]] <- mods[[k]]
+        }
+    coefs <- purrr::map(models, "coefs") |> dplyr::bind_rows(.id = "model_id")
+    stats <- purrr::map(models, "stats") |> dplyr::bind_rows(.id = "model_id")
+    name <- purrr::map(models, "name") |> dplyr::bind_rows(.id = "model_id")
     structure(list(coefs = coefs, stats = stats, name = name),
               class = c("sg_table", "stargate"))
 }
@@ -342,9 +381,18 @@ sg_replace <- function(x) {
 
 # reorder stuff -----------------------------------------------------------
 
-sg_reorder <- function(x) {
+sg_reorder <- function(x, coefs = NULL, stats = NULL) {
 
 }
+
+# sg_reorder_coefs_or_stats <- function(x, rules, what) {
+#     if (is.numeric(rules)) {
+#         rules <- base::unique(base::as.integer(rules))
+#         rest <- base::setdiff(base::seq_len(base::nrow(x)), rules)
+#         rules <- c(rules, rest)
+#         return(x[rules, ])
+#     }
+# }
 
 
 
