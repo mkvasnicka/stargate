@@ -100,12 +100,16 @@ with `sg_model()`, many models with `sg_table()`:
 
 ``` r
 sm1 <- sg_model(m1)
+#> Warning in sg_model.default(m1): I'm using the default sg_model method for an
+#> estimate of class lm. Some information may be 'lost in translation'.Check the
+#> details of broom::tidy() method for this class.
 stab <- sg_table(sm1, m2, m3)
-#> Warning: Unknown or uninitialised column: `model_id`.
-
-#> Warning: Unknown or uninitialised column: `model_id`.
-
-#> Warning: Unknown or uninitialised column: `model_id`.
+#> Warning in sg_model.default(.x[[i]], ...): I'm using the default sg_model method
+#> for an estimate of class lm. Some information may be 'lost in translation'.Check
+#> the details of broom::tidy() method for this class.
+#> Warning in sg_model.default(.x[[i]], ...): I'm using the default sg_model method
+#> for an estimate of class lm. Some information may be 'lost in translation'.Check
+#> the details of broom::tidy() method for this class.
 ```
 
 You can also convert at least one estimate to a stargate model or table
@@ -113,11 +117,13 @@ and then add other using the plus (`+`) sign:
 
 ``` r
 stab <- sm1 + m2 + m3
-#> Warning: Unknown or uninitialised column: `model_id`.
+#> Warning in sg_model.default(.x[[i]], ...): I'm using the default sg_model method
+#> for an estimate of class lm. Some information may be 'lost in translation'.Check
+#> the details of broom::tidy() method for this class.
 
-#> Warning: Unknown or uninitialised column: `model_id`.
-
-#> Warning: Unknown or uninitialised column: `model_id`.
+#> Warning in sg_model.default(.x[[i]], ...): I'm using the default sg_model method
+#> for an estimate of class lm. Some information may be 'lost in translation'.Check
+#> the details of broom::tidy() method for this class.
 ```
 
 Transform the model table to your liking:
@@ -162,12 +168,12 @@ kbl(sftab, format = "pipe") |>
 
 |          | \(1\)              | \(2\)              | \(3\)              |
 |:---------|:-------------------|:-------------------|:-------------------|
-| a1       | 1.17\*\*\* (0.10)  | 1.01\*\*\* (0.03)  | 1.01\*\*\* (0.03)  |
-| a2       | -2.05\*\*\* (0.10) | -1.99\*\*\* (0.03) | -1.98\*\*\* (0.03) |
+| a1       | 0.97\*\*\* (0.10)  | 0.97\*\*\* (0.03)  | 0.97\*\*\* (0.03)  |
+| a2       | -1.96\*\*\* (0.09) | -1.99\*\*\* (0.03) | -1.99\*\*\* (0.03) |
 | a3       |                    | 2.98\*\*\* (0.03)  | 2.98\*\*\* (0.03)  |
-| a2 x a3  |                    |                    | 0.01 (0.03)        |
-| R2       | 0.37               | 0.94               | 0.94               |
-| log Lik. | -2533.25           | -1390.2            | -1390.13           |
+| a2 x a3  |                    |                    | 0.00 (0.03)        |
+| R2       | 0.36               | 0.93               | 0.93               |
+| log Lik. | -2519.31           | -1376.95           | -1376.95           |
 | nobs     | 1000               | 1000               | 1000               |
 
 Or do all that at once:
@@ -184,32 +190,37 @@ sg_table(sm1, m2, m3) |>
     sg_present() |> 
     kbl(format = "pipe") |> 
     kable_classic()
-#> Warning: Unknown or uninitialised column: `model_id`.
+#> Warning in sg_model.default(.x[[i]], ...): I'm using the default sg_model method
+#> for an estimate of class lm. Some information may be 'lost in translation'.Check
+#> the details of broom::tidy() method for this class.
 
-#> Warning: Unknown or uninitialised column: `model_id`.
-
-#> Warning: Unknown or uninitialised column: `model_id`.
+#> Warning in sg_model.default(.x[[i]], ...): I'm using the default sg_model method
+#> for an estimate of class lm. Some information may be 'lost in translation'.Check
+#> the details of broom::tidy() method for this class.
 #> Warning in kable_styling(kable_input, "none", htmltable_class = light_class, :
 #> Please specify format in kable. kableExtra can customize either HTML or LaTeX
 #> outputs. See https://haozhu233.github.io/kableExtra/ for details.
 ```
 
-|               | \(1\)    | \(2\)   | \(3\)    |
-|:--------------|:---------|:--------|:---------|
-| a1            | 1.17     | 1.01    | 1.01     |
-|               | (0.10)   | (0.03)  | (0.03)   |
-| a2            | -2.05    | -1.99   | -1.98    |
-|               | (0.10)   | (0.03)  | (0.03)   |
-| a3            |          | 2.98    | 2.98     |
-|               |          | (0.03)  | (0.03)   |
-| a2 x a3       |          |         | 0.01     |
-|               |          |         | (0.03)   |
-| R2            | 0.37     | 0.94    | 0.94     |
-| log Lik.      | -2533.25 | -1390.2 | -1390.13 |
-| num. of. obs. | 1000     | 1000    | 1000     |
+|               | \(1\)    | \(2\)    | \(3\)    |
+|:--------------|:---------|:---------|:---------|
+| a1            | 0.97     | 0.97     | 0.97     |
+|               | (0.10)   | (0.03)   | (0.03)   |
+| a2            | -1.96    | -1.99    | -1.99    |
+|               | (0.09)   | (0.03)   | (0.03)   |
+| a3            |          | 2.98     | 2.98     |
+|               |          | (0.03)   | (0.03)   |
+| a2 x a3       |          |          | 0.00     |
+|               |          |          | (0.03)   |
+| R2            | 0.36     | 0.93     | 0.93     |
+| log Lik.      | -2519.31 | -1376.95 | -1376.95 |
+| num. of. obs. | 1000     | 1000     | 1000     |
 
 ## What next
 
+-   Generalize the *sg\_model* class to be able to encompass all useful
+    information that are stored in model estimates produced by most
+    packages.
 -   Implement the stuff. :-)
 -   Add protective code (checking inputs, etc.).
 -   Implement non-numeric coefficients (as Yes/No for included fixed

@@ -38,6 +38,10 @@ sg_model <- function(m, name, ...)
 sg_model.default <- function(m, name = "", ...) {
     if (inherits(m, "stargate"))
         return(m)
+    warning("I'm using the default sg_model method for an estimate of class ",
+            class(m),
+            ". Some information may be 'lost in translation'.",
+            "Check the details of broom::tidy() method for this class.")
     coefs <- broom::tidy(m)
     stats <- broom::glance(m) |>
         dplyr::mutate(dplyr::across(dplyr::everything(), list)) |>

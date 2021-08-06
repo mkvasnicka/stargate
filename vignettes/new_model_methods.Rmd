@@ -61,11 +61,43 @@ As the default method of `sg_model()` uses **broom**'s `tidy()` and `glance()` f
 
 3. We write a new method for `sg_model()` which keeps all the information.
 
-Moreover, **broom** does not implement `tidy()` and `glance` for each estimation function in the wild and these packages provide at most a specific method of `summary()` function. In this case, the new method of `sg_model()` may be our only chance.
+Moreover, there are two other reasons to write new `sg_model()` methods:
+
+1. **broom** does not implement `tidy()` and `glance` for each estimation function in the wild and these packages provide at most a specific method of `summary()` function. In this case, the new method of `sg_model()` may be our only chance.
+2. Even when there is a **broom** method, it does not cover well various ways to compute standard errors.
 
 
+## The structure of *sg_model* class
 
-## The structure of `sg_model` class
+A *sg_model* class is a list with the class attribute set to `c("sg_model", "stargate")`. Presently, it has three slots---each of them is a *tibble*
+
+* `coefs` ... the estimated coefficients; in the default method, the result of `broom::tidy()`
+* `stats` ... the model statistics---one statistic per row, each enveloped in a list (i.e.\ the value column is a list); in the default mehtods, the result of `broom::glance()` enveloped in list and pivotted longer
+* `name` ... the model's name (`""` if not set)
+
+The look at the default method shows more precisely how it looks like:
+
+```{r, eval=FALSE}
+sg_model.default <- function(m, name = "", ...) {
+    if (inherits(m, "stargate"))
+        return(m)
+    coefs <- broom::tidy(m)
+    stats <- broom::glance(m) |>
+        dplyr::mutate(dplyr::across(dplyr::everything(), list)) |>
+        tidyr::pivot_longer(dplyr::everything(),
+                            names_to = "stat", values_to = "val")
+    name <- tibble::tibble(name = name)
+    structure(list(coefs = coefs, stats = stats, name = name),
+              class = c("sg_model", "stargate"))
+}
+```
+
+The present structure is not sufficient to cover the results of **fixest**'s estimation functions. It lacks at least two things:
+
+1. the ability to include "word" parameters, e.g.\ "Yes" for the fixed effects and
+2. the ability to keep the information on the kind of standard errors the model estimates, e.g.\ "heteroskedasticity-robust"
+
+It is necessary to design how to include these things into the data structure. Moreover, it is necessary to find out which other items are presently missing to make the structure rich enough to be able to encompass most of the estimated models without a loss of information.
 
 *TODO*
 

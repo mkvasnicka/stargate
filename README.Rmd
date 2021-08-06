@@ -162,6 +162,7 @@ sg_table(sm1, m2, m3) |>
 
 ## What next
 
+* Generalize the *sg_model* class to be able to encompass all useful information that are stored in model estimates produced by most packages.
 * Implement the stuff. :-)
 * Add protective code (checking inputs, etc.).
 * Implement non-numeric coefficients (as Yes/No for included fixed effects)---and the way they are formatted.
