@@ -323,14 +323,20 @@ sg_format_coefs <- function(coefs,
             stringr::str_pad(width, side = "right")
     }
 
-    dplyr::mutate(coefs,
-                  formated_coefs = glue::glue(format,
-                                              estimate = formatted(estimate, nsmall = nsmall, ...),
-                                              std.error = formatted(std.error, nsmall = nsmall, ...),
-                                              statistic = formatted(statistic, nsmall = nsmall, ...),
-                                              p.value = formatted(p.value, nsmall = nsmall, ...),
-                                              stars = starred(p.value)),
-                  formated_coefs = as.character(formated_coefs))
+    purrr::map(format,
+               ~ dplyr::mutate(
+                   coefs,
+                   formatted_coefs = glue::glue(.x,
+                                               estimate = formatted(estimate, nsmall = nsmall),
+                                               std.error = formatted(std.error, nsmall = nsmall),
+                                               statistic = formatted(statistic, nsmall = nsmall),
+                                               p.value = formatted(p.value, nsmall = nsmall),
+                                               stars = starred(p.value)),
+                   formatted_coefs = as.character(formatted_coefs))
+    ) |>
+        dplyr::bind_rows(.id = "row_id") |>
+        dplyr::select(model_id, term, row_id, dplyr::everything()) |>
+        dplyr::arrange(model_id, term, row_id)
 }
 
 
@@ -346,6 +352,7 @@ sg_format_stats <- function(stats, nsmall = 2, ...) {
 
 
 #' @export
+# TODO: add formatting parameters instead of ...
 sg_format <- function(tab,
                       format = "{estimate}{stars} ({std.error})",
                       nsmall = 2,
@@ -356,14 +363,20 @@ sg_format <- function(tab,
                            tab$name$name
     )
     get_together <- function(tab, name, tabname) {
+        by_names <- tabname
+        if (tabname == "term")
+            by_names <- c(by_names, "row_id")
         tab |>
-            dplyr::select(1, 2, ncol(tab)) |>
+            dplyr::select(
+                dplyr::any_of(c("model_id", "row_id", tabname,
+                                "formatted_coefs", "formatted_stats"))
+            ) |>
             dplyr::group_by(model_id) |>
             dplyr::group_split(.keep = FALSE) |>
-            purrr::reduce(dplyr::full_join, by = names(tab)[2]) |>
-            dplyr::mutate(across(-1,
+            purrr::reduce(dplyr::full_join, by = by_names) |>
+            dplyr::mutate(across(-base::seq_along(by_names),
                                  ~stringr::str_replace_na(., replacement = ""))) |>
-            stats::setNames(c(tabname, name))
+            stats::setNames(c(base::rev(by_names), name))
     }
     coefs <- tab$coefs |>
         sg_format_coefs(format = format,
@@ -386,7 +399,9 @@ sg_format <- function(tab,
 sg_present <- function(x) {
     if (!inherits(x, "sg_formatted_table"))
         stop("x must be a sg formatted table")
-    coefs <- x$coefs
+    coefs <- x$coefs |>
+        dplyr::mutate(term = ifelse(row_id == 1, term, "")) |>
+        dplyr::select(-row_id)
     stats <- x$stats |>
         dplyr::rename(term = stat)
     tab <- dplyr::bind_rows(coefs, stats) |>
