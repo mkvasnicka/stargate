@@ -304,17 +304,15 @@ sg_reorder <- function(x) {
 
 # format table ------------------------------------------------------------
 
-
-formatted <- function(x, nsmall = 2, ...) {
-    format(round(x, nsmall), nsmall = nsmall, ...)
+formatted <- function(x, format) {
+    if ("nsmall" %in% names(format))
+        format$nsmall <- 2
+    round_x <- round(x, format$nsmall)
+    do.call("format", list(round_x, format = format))
 }
 
 
-sg_format_coefs <- function(coefs,
-                            format = "{estimate}{stars} ({std.error})",
-                            nsmall = 2,
-                            stars = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-                            ...) {
+sg_format_coefs <- function(coefs, style, format, stars) {
     starred <- function(p.value) {
         stars <- sort(stars)
         width <- max(length(names(stars)))
@@ -323,14 +321,14 @@ sg_format_coefs <- function(coefs,
             stringr::str_pad(width, side = "right")
     }
 
-    purrr::map(format,
+    purrr::map(style,
                ~ dplyr::mutate(
                    coefs,
                    formatted_coefs = glue::glue(.x,
-                                               estimate = formatted(estimate, nsmall = nsmall),
-                                               std.error = formatted(std.error, nsmall = nsmall),
-                                               statistic = formatted(statistic, nsmall = nsmall),
-                                               p.value = formatted(p.value, nsmall = nsmall),
+                                               estimate = formatted(estimate, format = format),
+                                               std.error = formatted(std.error, format = format),
+                                               statistic = formatted(statistic, format = format),
+                                               p.value = formatted(p.value, format = format),
                                                stars = starred(p.value)),
                    formatted_coefs = as.character(formatted_coefs))
     ) |>
@@ -340,24 +338,56 @@ sg_format_coefs <- function(coefs,
 }
 
 
-sg_format_stats <- function(stats, nsmall = 2, ...) {
+sg_format_stats <- function(stats, format) {
     dplyr::mutate(stats,
                   formatted_stats = purrr::map_chr(val,
                                                    ~dplyr::case_when(
-                                                       is.integer(.) ~ formatted(., nsmall = 0, ...),
-                                                       is.double(.) ~ formatted(., nsmall = nsmall, ...),
+                                                       is.integer(.) ~ formatted(., format = format),
+                                                       is.double(.) ~ formatted(., format = format),
                                                        TRUE ~ as.character(.)
                                                    )))
 }
 
 
+#' Format a Model Table
+#'
+#' @param tab A stargate model table.
+#' @param style A character vector that describes how to format coefficients.
+#'     Its length determines the number of rows per each parameter.
+#' @param format A named list of parameters to format() function. Its
+#'     \code{nsmall} slot is used to round the number before it is formatted.
+#' @param stars A named numeric vector of statistical significance. Its values
+#'     set the thresholds for the significance coding, its names the
+#'     corresponding codes.
+#'
+#' @return A stargate formatted table.
 #' @export
-# TODO: add formatting parameters instead of ...
+#'
+#' @examples
+#' n <- 1e3
+#' df <- tibble(
+#'     x1 = rnorm(n),
+#'     x2 = rnorm(n),
+#'     x3 = rnorm(n),
+#'     e  = rnorm(n),
+#'     y  = x1 - 2 * x2 + 3 * x3 + e
+#' )
+#'
+#' m1 <- lm(y ~ x1 + x2, df)
+#' m2 <- lm(y ~ x1 + x2 + x3, df)
+#' m3 <- lm(y ~ x1 + x2 * x3, df)
+#' stab <- sg_table(m1, m2, m3)
+#'
+#' sg_table(sm1, m2, m3) |>
+#' sg_remove(coefs = "Interc", regex = TRUE) |>
+#'     sg_remove(stats = c("r.squared", "logLik", "nobs"), keep = TRUE) |>
+#'     sg_format(style = c("{estimate}", "({std.error})"),
+#'               format = list(nsmall = 3)) |>
+#'     sg_present()
 sg_format <- function(tab,
-                      format = "{estimate}{stars} ({std.error})",
-                      nsmall = 2,
-                      stars = c("***" = 0.01, "**" = 0.05, "*" = 0.1),
-                      ...) {
+                      style = "{estimate}{stars} ({std.error})",
+                      format = list(nsmall = 2),
+                      stars = c("***" = 0.01, "**" = 0.05, "*" = 0.1)) {
     name <- dplyr::if_else(tab$name$name == "",
                            stringr::str_c("(", seq_along(tab$name$name), ")"),
                            tab$name$name
@@ -379,13 +409,12 @@ sg_format <- function(tab,
             stats::setNames(c(base::rev(by_names), name))
     }
     coefs <- tab$coefs |>
-        sg_format_coefs(format = format,
-                        nsmall = nsmall,
-                        stars = stars,
-                        ...) |>
+        sg_format_coefs(style = style,
+                        format = format,
+                        stars = stars) |>
         get_together(name, tabname = "term")
     stats <- tab$stats |>
-        sg_format_stats(nsmall = nsmall, ...) |>
+        sg_format_stats(format = format) |>
         get_together(name, tabname = "stat")
     structure(list(coefs = coefs, stats = stats),
               class = c("sg_formatted_table", "stargate"))
