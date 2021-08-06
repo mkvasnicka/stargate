@@ -52,7 +52,28 @@ sg_model.default <- function(m, name = "", ...) {
 
 # sg table ----------------------------------------------------------------
 
+#' Join Several stargate Models into one stargate Table
+#'
+#' @param ... stargate models or model tables.
+#'
+#' @return A stargate model table.
 #' @export
+#'
+#' @examples
+#' n <- 1e3
+#' df <- tibble(
+#'     x1 = rnorm(n),
+#'     x2 = rnorm(n),
+#'     x3 = rnorm(n),
+#'     e  = rnorm(n),
+#'     y  = x1 - 2 * x2 + 3 * x3 + e
+#' )
+#'
+#' m1 <- lm(y ~ x1 + x2, df)
+#' m2 <- lm(y ~ x1 + x2 + x3, df)
+#' m3 <- lm(y ~ x1 + x2 * x3, df)
+#' sm1 <- sg_model(m1)
+#' stab <- sg_table(sm1, m2, m3)
 sg_table <- function(...) {
     count_models_in_tables <- function(x) {
         count <- purrr::map_int(x,
