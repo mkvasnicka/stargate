@@ -74,6 +74,7 @@ sg_model.default <- function(m, name = "", ...) {
 #' m3 <- lm(y ~ x1 + x2 * x3, df)
 #' sm1 <- sg_model(m1)
 #' stab <- sg_table(sm1, m2, m3)
+# TODO: opravit mechanismus číslování modelů (a možná přidat číslo modelu i do sg_model)
 sg_table <- function(...) {
     count_models_in_tables <- function(x) {
         count <- purrr::map_int(x,

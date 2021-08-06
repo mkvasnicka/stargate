@@ -162,12 +162,12 @@ kbl(sftab, format = "pipe") |>
 
 |          | \(1\)              | \(2\)              | \(3\)              |
 |:---------|:-------------------|:-------------------|:-------------------|
-| a1       | 1.03\*\*\* (0.10)  | 1.01\*\*\* (0.03)  | 1.01\*\*\* (0.03)  |
-| a2       | -2.05\*\*\* (0.10) | -2.02\*\*\* (0.03) | -2.02\*\*\* (0.03) |
-| a3       |                    | 3.03\*\*\* (0.03)  | 3.03\*\*\* (0.03)  |
-| a2 x a3  |                    |                    | 0.02 (0.03)        |
-| R2       | 0.33               | 0.94               | 0.94               |
-| log Lik. | -2583.09           | -1399.94           | -1399.68           |
+| a1       | 1.17\*\*\* (0.10)  | 1.01\*\*\* (0.03)  | 1.01\*\*\* (0.03)  |
+| a2       | -2.05\*\*\* (0.10) | -1.99\*\*\* (0.03) | -1.98\*\*\* (0.03) |
+| a3       |                    | 2.98\*\*\* (0.03)  | 2.98\*\*\* (0.03)  |
+| a2 x a3  |                    |                    | 0.01 (0.03)        |
+| R2       | 0.37               | 0.94               | 0.94               |
+| log Lik. | -2533.25           | -1390.2            | -1390.13           |
 | nobs     | 1000               | 1000               | 1000               |
 
 Or do all that at once:
@@ -194,25 +194,31 @@ sg_table(sm1, m2, m3) |>
 #> outputs. See https://haozhu233.github.io/kableExtra/ for details.
 ```
 
-|               | \(1\)    | \(2\)    | \(3\)    |
-|:--------------|:---------|:---------|:---------|
-| a1            | 1.03     | 1.01     | 1.01     |
-|               | (0.10)   | (0.03)   | (0.03)   |
-| a2            | -2.05    | -2.02    | -2.02    |
-|               | (0.10)   | (0.03)   | (0.03)   |
-| a3            |          | 3.03     | 3.03     |
-|               |          | (0.03)   | (0.03)   |
-| a2 x a3       |          |          | 0.02     |
-|               |          |          | (0.03)   |
-| R2            | 0.33     | 0.94     | 0.94     |
-| log Lik.      | -2583.09 | -1399.94 | -1399.68 |
-| num. of. obs. | 1000     | 1000     | 1000     |
+|               | \(1\)    | \(2\)   | \(3\)    |
+|:--------------|:---------|:--------|:---------|
+| a1            | 1.17     | 1.01    | 1.01     |
+|               | (0.10)   | (0.03)  | (0.03)   |
+| a2            | -2.05    | -1.99   | -1.98    |
+|               | (0.10)   | (0.03)  | (0.03)   |
+| a3            |          | 2.98    | 2.98     |
+|               |          | (0.03)  | (0.03)   |
+| a2 x a3       |          |         | 0.01     |
+|               |          |         | (0.03)   |
+| R2            | 0.37     | 0.94    | 0.94     |
+| log Lik.      | -2533.25 | -1390.2 | -1390.13 |
+| num. of. obs. | 1000     | 1000    | 1000     |
 
 ## What next
 
 -   Implement the stuff. :-)
--   Provide methods for estimation objects.
+-   Add protective code (checking inputs, etc.).
+-   Implement non-numeric coefficients (as Yes/No for included fixed
+    effects)—and the way they are formatted.
+-   Possibly add classes of coefficients (constant, basic, interaction,
+    special, note, etc.) to simplify their ordering.
+-   Provide methods for estimated objects.
 -   Write a vignette how to write a new method.
 -   Provide some auto-setup for the function to simplify the process.
 -   Tune the output to LaTeX, HTML, Markdown, and possibly
     Word/LibreOffice.
+-   Implement `print()` methods for all stargate objects.
