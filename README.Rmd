@@ -97,6 +97,13 @@ sm1 <- sg_model(m1)
 stab <- sg_table(sm1, m2, m3)
 ```
 
+You can also convert at least one estimate to a stargate model or table and then add other using the plus (`+`) sign:
+
+```{r sg plus}
+stab <- sm1 + m2 + m3
+```
+
+
 Transform the model table to your liking:
 
 ```{r sg transform}

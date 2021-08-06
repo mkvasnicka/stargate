@@ -110,6 +110,22 @@ sg_table <- function(...) {
 }
 
 
+#' @describeIn sg_table Joins a stargate model and a stargate model, table, or
+#'     an object convertible to stargame model.
+#' @export
+`+.sg_model` <- function(e1, e2) {
+    sg_table(e1, e2)
+}
+
+
+#' @describeIn sg_table Joins a stargate table and a stargate model, table, or
+#'     an object convertible to stargame model.
+#' @export
+`+.sg_table` <- function(e1, e2) {
+    sg_table(e1, e2)
+}
+
+
 
 # rename stuff ------------------------------------------------------------
 
