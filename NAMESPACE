@@ -3,6 +3,7 @@
 S3method("+",sg_model)
 S3method("+",sg_table)
 S3method(sg_model,default)
+S3method(sg_model,lm)
 export(sg_format)
 export(sg_model)
 export(sg_present)

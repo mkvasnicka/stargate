@@ -1,10 +1,10 @@
 # -------------------------------------
-# Script:
-# Author:
-# Purpose:
-# Inputs:
-# Outputs:
-# Notes:
+# Script:   stargate_basis.R
+# Author:   Michal Kvasnička
+# Purpose:  This script includes the basic stargate functions.
+# Inputs:   none
+# Outputs:  none
+# Notes:    none
 #
 # Copyright(c) Corporation Name
 # -------------------------------------
@@ -18,6 +18,7 @@
 #' @param name The model's name in the final model table.
 #' @param ... Other parameters sent to the \code{sg_model} methods.
 #' @return The sg model representation of the estimate.
+#' @family stargate model
 #' @examples
 #' library(tibble)
 #' n <- 1e3
